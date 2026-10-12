@@ -83,4 +83,20 @@ sensors and record lab-test results as labels.
 ## Production notes
 - The publishable key on the ESP32 lets anyone holding it insert rows. For production, give each device its own token and insert through a Supabase Edge Function that verifies it.
 - Replace `client.setInsecure()` with the Supabase root CA certificate.
-- Deploy the backend to Render, Railway, or Fly.io and the frontend to Vercel or Netlify. Set `CORS_ORIGINS` to the frontend URL.
+
+## Deploy on Render (free tier)
+
+`render.yaml` defines both services: the API (free web service) and the dashboard (free static site).
+
+1. Render dashboard → **New → Blueprint** → connect this GitHub repo → **Apply**.
+2. Fill in the prompted variables:
+   - `water-quality-api`: `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `CORS_ORIGINS` = dashboard URL
+   - `water-quality-dashboard`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_API_URL` = API URL
+
+   Service URLs are `https://<service-name>.onrender.com`. If a name is taken, Render adds a suffix; update the two cross-URLs and redeploy.
+3. In Supabase SQL Editor, run `supabase/cron.sql` (with your API URL and `ADMIN_TOKEN` filled in) so scoring runs every minute.
+
+Free-tier limits:
+- The API sleeps after 15 min without requests; the Supabase cron call wakes it (first request after sleep takes ~1 min).
+- The disk is wiped on every restart or deploy, so the model retrains automatically on startup (a few seconds).
+- 750 free instance-hours/month. One always-awake service uses ~744 h, so keep only one free web service on the account.

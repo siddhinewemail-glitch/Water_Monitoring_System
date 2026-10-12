@@ -1,0 +1,52 @@
+# Render Blueprint: Dashboard -> New -> Blueprint -> pick this repo.
+# Variables marked `sync: false` are prompted for on first deploy (never commit secrets).
+services:
+  # FastAPI ML backend (free web service: 512 MB RAM, sleeps after 15 min idle)
+  - type: web
+    name: water-quality-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.13
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: ADMIN_TOKEN
+        generateValue: true
+      # Full URL of the dashboard below, e.g. https://water-quality-dashboard.onrender.com
+      - key: CORS_ORIGINS
+        sync: false
+      - key: SCORE_INTERVAL_SECONDS
+        value: "30"
+      - key: MIN_TRAIN_ROWS
+        value: "500"
+
+  # React dashboard (free static site: global CDN, never sleeps)
+  - type: web
+    name: water-quality-dashboard
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      # Full URL of the API above, e.g. https://water-quality-api.onrender.com
+      - key: VITE_API_URL
+        sync: false
+      - key: VITE_DEVICE_ID
+        value: esp32-tank-01
