@@ -103,6 +103,17 @@ def require_db():
         raise HTTPException(503, "Supabase is not configured on the server")
 
 
+@app.get("/")
+def root():
+    return {
+        "service": "Water Quality ML API",
+        "status": "online",
+        "docs": "/docs",
+        "health": "/health",
+        "model": "/api/model"
+    }
+
+
 @app.get("/health")
 def health():
     return {
