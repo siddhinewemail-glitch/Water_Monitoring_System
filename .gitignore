@@ -1,0 +1,17 @@
+# secrets
+firmware/**/secrets.h
+.env
+.env.local
+
+# python
+backend/.venv/
+__pycache__/
+.pytest_cache/
+backend/models/*.joblib
+
+# node
+frontend/node_modules/
+frontend/dist/
+
+# local Claude runtime files
+.claude/*.lock
